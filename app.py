@@ -45,35 +45,19 @@ def add_or_update_rsvp():
     db.session.commit()
     return jsonify({"message": "RSVP saved.", "data": rsvp.as_dict()}), 200
 
-@app.route("/api/rsvp/bulk", methods=["POST"])
-def add_rsvp_list():
-    data = request.get_json()  # Expecting a list of {id, name, status}
-    
-    if not isinstance(data, list):
-        return jsonify({"error": "Expected a list of RSVP entries."}), 400
+@app.route('/api/rsvp/bulk', methods=['POST'])
+def add_bulk_rsvps():
+    data = request.get_json()
+    entries = data.get('entries', [])
 
-    responses = []
-
-    for entry in data:
-        player_id = entry.get("id")
-        name = entry.get("name")
-        status = entry.get("status")
-
-        if not player_id or not name or status not in ["Yes", "No", "Maybe"]:
-            continue  # skip invalid entries
-
-        rsvp = Rsvp.query.get(player_id)
-        if rsvp:
-            rsvp.name = name
-            rsvp.status = status
-        else:
-            rsvp = Rsvp(id=player_id, name=name, status=status)
-            db.session.add(rsvp)
-
-        responses.append(rsvp)
+    for entry in entries:
+        if 'name' not in entry or 'status' not in entry or 'id' not in entry:
+            return jsonify({'error': 'Missing fields in bulk entry'}), 400
+        new_rsvp = Rsvp(id=entry['id'], name=entry['name'], status=entry['status'])
+        db.session.add(new_rsvp)
 
     db.session.commit()
-    return jsonify({"message": f"{len(responses)} RSVPs saved.", "data": [r.as_dict() for r in responses]}), 200
+    return jsonify({'message': 'Bulk RSVPs added'}), 201
 
 @app.route("/api/rsvp/confirmed", methods=["GET"])
 def get_confirmed():
