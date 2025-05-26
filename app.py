@@ -6,7 +6,6 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# PostgreSQL config (use your actual credentials or environment variable)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "postgresql://postgres:Cse%4040668@localhost:5432/rsvp_db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -20,7 +19,6 @@ class Rsvp(db.Model):
     def as_dict(self):
         return {"id": self.id, "name": self.name, "status": self.status}
 
-# Create DB tables
 with app.app_context():
     db.create_all()
 
